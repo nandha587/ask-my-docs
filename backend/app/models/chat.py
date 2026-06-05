@@ -11,7 +11,7 @@ class ChatSession(Base):
     title: Mapped[str] = mapped_column(String(255), default="New Conversation", nullable=False)
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     tenant = relationship("Tenant", back_populates="chat_sessions")
@@ -27,7 +27,7 @@ class ChatMessage(Base):
     role: Mapped[str] = mapped_column(String(50), nullable=False)  # user, assistant
     content: Mapped[str] = mapped_column(Text, nullable=False)
     citations: Mapped[list] = mapped_column(JSON, default=list, nullable=False)  # array of chunk source references
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     # Relationships
     session = relationship("ChatSession", back_populates="messages")
