@@ -17,16 +17,21 @@ async def get_system_stats(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Returns global system statistics. Only available to system administrators.
+    Returns system statistics for the admin's tenant workspace.
     """
-    # Count totals
-    tenant_count_res = await db.execute(select(func.count(Tenant.id)))
-    user_count_res = await db.execute(select(func.count(User.id)))
-    doc_count_res = await db.execute(select(func.count(Document.id)))
-    chunk_count_res = await db.execute(select(func.count(DocumentChunk.id)))
+    # Count totals filtered by tenant_id
+    user_count_res = await db.execute(
+        select(func.count(User.id)).where(User.tenant_id == current_admin.tenant_id)
+    )
+    doc_count_res = await db.execute(
+        select(func.count(Document.id)).where(Document.tenant_id == current_admin.tenant_id)
+    )
+    chunk_count_res = await db.execute(
+        select(func.count(DocumentChunk.id)).where(DocumentChunk.tenant_id == current_admin.tenant_id)
+    )
 
     return SystemStats(
-        tenant_count=tenant_count_res.scalar_one(),
+        tenant_count=1,  # Only their own tenant
         user_count=user_count_res.scalar_one(),
         document_count=doc_count_res.scalar_one(),
         chunk_count=chunk_count_res.scalar_one()
@@ -38,7 +43,7 @@ async def get_tenants_details(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Returns a detailed list of tenants with user and document counts.
+    Returns a detailed list containing only the admin's own tenant details.
     """
     stmt = (
         select(
@@ -50,8 +55,8 @@ async def get_tenants_details(
         )
         .outerjoin(User, Tenant.id == User.tenant_id)
         .outerjoin(Document, Tenant.id == Document.tenant_id)
+        .where(Tenant.id == current_admin.tenant_id)
         .group_by(Tenant.id)
-        .order_by(Tenant.created_at.desc())
     )
 
     res = await db.execute(stmt)
