@@ -1,0 +1,2 @@
+# Ask My Docs Public Assets
+Placeholder file to ensure folder mapping during docker builds.

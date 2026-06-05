@@ -1,0 +1,1 @@
+# askmydocs schemas package

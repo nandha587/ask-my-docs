@@ -1,0 +1,36 @@
+# Python exclusions
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+env/
+*.db
+*.sqlite
+
+# Node/Next.js exclusions
+node_modules/
+.next/
+out/
+build/
+dist/
+.npm
+*.log
+
+# Application uploads & storage (CRITICAL: blocks private documents)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment variables & secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env*.local
+
+# OS exclusions
+.DS_Store
+Thumbs.db

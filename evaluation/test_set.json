@@ -1,0 +1,23 @@
+[
+  {
+    "question": "What is the daily maximum allowance for business travel dinners under the company policy?",
+    "contexts": [
+      "Company Travel Policy Section 4.2 states that employees are eligible for meal reimbursements during active business travels. Dinner expenses are covered up to a maximum of $75 per day, inclusive of tax and gratuities. Alcohol is explicitly excluded from reimbursements."
+    ],
+    "ground_truth": "The maximum daily reimbursement allowance for business travel dinner is $75, including taxes and tips. Alcohol expenses are not covered."
+  },
+  {
+    "question": "How do we configure database replication in our cluster?",
+    "contexts": [
+      "Database clusters use PostgreSQL pg_receivewal for asynchronous streaming replication. The primary server must have wal_level set to 'replica' and max_wal_senders set to 10. Replica nodes authenticate using the replication credentials specified in pg_hba.conf."
+    ],
+    "ground_truth": "PostgreSQL replication is configured as asynchronous streaming via pg_receivewal. This requires setting wal_level to 'replica' and max_wal_senders to 10 on the primary node, and authentication configured in pg_hba.conf."
+  },
+  {
+    "question": "What is the session caching policy for Redis memory store?",
+    "contexts": [
+      "Redis is configured with volatile-lru eviction. User chat sessions have a Time-To-Live (TTL) of 24 hours from the last update. After 24 hours of inactivity, the session data is evicted to preserve space."
+    ],
+    "ground_truth": "The session caching policy uses volatile-lru eviction in Redis. Chat session keys have a TTL of 24 hours from the last interaction, after which inactive keys are evicted."
+  }
+]

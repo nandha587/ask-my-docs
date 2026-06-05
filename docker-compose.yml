@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:v0.5.1
+    container_name: askmydocs-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: askmydocs
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - askmydocs-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+    container_name: askmydocs-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - askmydocs-net
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: askmydocs-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - askmydocs-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: askmydocs-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=askmydocs
+      - ELASTICSEARCH_HOST=http://elasticsearch:9200
+      - REDIS_HOST=redis
+      - EMBEDDING_PROVIDER=ollama
+      - EMBEDDING_MODEL=nomic-embed-text
+      - OLLAMA_URL=http://host.docker.internal:11434  # Links to local host's Ollama instance
+      - LLM_MODEL=llama3
+      - USE_RERANKER=true
+    depends_on:
+      - db
+      - elasticsearch
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - askmydocs-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: askmydocs-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - askmydocs-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: askmydocs-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - askmydocs-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: askmydocs-grafana
+    ports:
+      - "3001:3000" # Expose on 3001 to avoid conflict with Next.js on 3000
+    volumes:
+      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+    networks:
+      - askmydocs-net
+
+volumes:
+  pgdata:
+  esdata:
+
+networks:
+  askmydocs-net:
+    driver: bridge

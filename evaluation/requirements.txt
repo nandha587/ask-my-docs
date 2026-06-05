@@ -1,0 +1,5 @@
+ragas>=0.1.7
+deepeval>=0.21.11
+pandas>=2.2.2
+nest-asyncio>=1.6.0
+openai>=1.30.5
