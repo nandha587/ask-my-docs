@@ -15,18 +15,8 @@ class RerankingService:
         self.failed_to_load = False
 
     def _load_model(self):
-        """
-        Lazy load CrossEncoder to prevent long startup delays.
-        """
-        if self.model is None and not self.failed_to_load:
-            try:
-                from sentence_transformers import CrossEncoder
-                logger.info(f"Loading Cross-Encoder model: {self.model_name}...")
-                self.model = CrossEncoder(self.model_name)
-                logger.info("Cross-Encoder loaded successfully.")
-            except Exception as e:
-                logger.warning(f"Could not load CrossEncoder model locally: {str(e)}. Using fallback matching reranker.")
-                self.failed_to_load = True
+        self.failed_to_load = True
+
 
     async def rerank(self, query: str, chunks: List[Dict[str, Any]], limit: int = 5) -> List[Dict[str, Any]]:
         """

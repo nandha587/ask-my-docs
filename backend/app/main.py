@@ -25,23 +25,6 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize PostgreSQL: {str(e)}")
 
-    # Pre-load/warmup local models to avoid request latency spikes
-    if settings.EMBEDDING_PROVIDER.lower() == "local":
-        logger.info("Pre-warming embedding models...")
-        try:
-            emb = EmbeddingService()
-            emb._load_local_model()
-        except Exception as e:
-            logger.warning(f"Could not pre-load embedding model: {str(e)}")
-
-    if settings.USE_RERANKER:
-        logger.info("Pre-warming cross-encoder reranker models...")
-        try:
-            rerank = RerankingService()
-            rerank._load_model()
-        except Exception as e:
-            logger.warning(f"Could not pre-load reranker: {str(e)}")
-
     yield
     # Shutdown tasks (cleanups if any)
     logger.info("Shutting down system...")

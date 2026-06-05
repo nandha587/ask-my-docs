@@ -13,16 +13,7 @@ class EmbeddingService:
         self.local_model = None
 
     def _load_local_model(self):
-        """
-        Lazy load SentenceTransformer to save memory if using Ollama.
-        We default to a 768-dimension local model (e.g. 'BAAI/bge-base-en-v1.5')
-        to match our pgvector Vector(768) column.
-        """
-        if self.local_model is None:
-            from sentence_transformers import SentenceTransformer
-            # If all-MiniLM-L6-v2 is configured, it produces 384 dimensions.
-            # If so, we will pad it to 768 in get_embedding.
-            self.local_model = SentenceTransformer(self.model_name)
+        pass
 
     async def get_embedding(self, text: str) -> List[float]:
         """
@@ -30,9 +21,7 @@ class EmbeddingService:
         """
         if self.provider == "ollama":
             return await self._get_ollama_embedding(text)
-        elif self.provider == "local":
-            return await self._get_local_embedding(text)
-        elif self.provider == "openai":
+        elif self.provider in ["local", "openai"]:
             return await self._get_openai_mock_embedding(text)
         else:
             raise ValueError(f"Unknown embedding provider: {self.provider}")
@@ -48,20 +37,11 @@ class EmbeddingService:
                 vector = response.json()["embedding"]
                 return self._ensure_dimension(vector, 768)
         except Exception as e:
-            # Fall back to local sentence transformers if Ollama service is unavailable
-            print(f"Ollama embedding failed: {str(e)}. Falling back to local SentenceTransformers.")
-            return await self._get_local_embedding(text)
+            print(f"Ollama embedding failed: {str(e)}. Falling back to mock embeddings.")
+            return await self._get_openai_mock_embedding(text)
 
     async def _get_local_embedding(self, text: str) -> List[float]:
-        # Run synchronous HuggingFace model in thread pool
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(self._executor, self._load_local_model)
-        
-        def encode():
-            return self.local_model.encode(text).tolist()
-            
-        vector = await loop.run_in_executor(self._executor, encode)
-        return self._ensure_dimension(vector, 768)
+        return await self._get_openai_mock_embedding(text)
 
     async def _get_openai_mock_embedding(self, text: str) -> List[float]:
         # Standard placeholder embedding for mock testing
